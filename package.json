@@ -1,0 +1,31 @@
+{
+  "name": "stockinsight-app",
+  "version": "1.0.0",
+  "description": "Educational Stock Analysis Tool",
+  "main": "index.js",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build required for static site'",
+    "deploy": "netlify deploy",
+    "deploy:prod": "netlify deploy --prod",
+    "functions:serve": "netlify functions:serve"
+  },
+  "keywords": [
+    "stock",
+    "analysis",
+    "education",
+    "financial",
+    "market"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "netlify-cli": "^17.10.1"
+  },
+  "dependencies": {
+    "node-fetch": "^2.6.9"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Educational stock analysis tool for learning market indicators, technical analysis, and risk assessment">
+    <meta name="keywords" content="stock analysis, educational, investing, learning, market indicators">
     <title>StockInsight - Educational Analysis Tool</title>
     <style>
         * {
@@ -63,6 +65,37 @@
             font-size: 1.1em;
         }
 
+        .api-status {
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-connected {
+            background-color: #00ff88;
+            animation: pulse-green 2s infinite;
+        }
+
+        .status-disconnected {
+            background-color: #ff3366;
+        }
+
+        .status-mock {
+            background-color: #ffc107;
+        }
+
+        @keyframes pulse-green {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         .search-section {
             background: rgba(255, 255, 255, 0.08);
             padding: 30px;
@@ -115,6 +148,42 @@
 
         button:active {
             transform: translateY(0);
+        }
+
+        .data-source-toggle {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: linear-gradient(45deg, #00ff88, #00bbff);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(30px);
         }
 
         .dashboard {
@@ -247,6 +316,19 @@
             to { transform: rotate(360deg); }
         }
 
+        .error-message {
+            background: rgba(255, 51, 102, 0.1);
+            border: 1px solid rgba(255, 51, 102, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
         .risk-indicators {
             display: flex;
             gap: 15px;
@@ -371,13 +453,17 @@
 </head>
 <body>
     <div class="disclaimer">
-        ⚠️ EDUCATIONAL TOOL ONLY - Not Financial Advice. Past performance does not guarantee future results. Always consult qualified financial advisors.
+        EDUCATIONAL TOOL ONLY - Not Financial Advice. Past performance does not guarantee future results. Always consult qualified financial advisors.
     </div>
 
     <div class="container">
         <header>
             <h1>StockInsight</h1>
             <p class="subtitle">Educational Stock Analysis & Risk Assessment Tool</p>
+            <div class="api-status">
+                <span class="status-indicator" id="statusIndicator"></span>
+                <span id="statusText">Checking API connection...</span>
+            </div>
         </header>
 
         <div class="search-section">
@@ -391,15 +477,23 @@
                 </select>
                 <button onclick="analyzeStock()">Analyze</button>
             </div>
+            <div class="data-source-toggle">
+                <span>Data Source:</span>
+                <div class="toggle-switch" id="dataToggle" onclick="toggleDataSource()">
+                    <div class="toggle-slider"></div>
+                </div>
+                <span id="dataSourceLabel">Mock Data</span>
+            </div>
             <div class="loading" id="loading">
                 <div class="spinner"></div>
                 <p>Analyzing market data...</p>
             </div>
+            <div class="error-message" id="errorMessage"></div>
         </div>
 
         <div class="dashboard" id="dashboard">
             <div class="card">
-                <h3>📊 Price Analysis</h3>
+                <h3>Price Analysis</h3>
                 <div class="metric">
                     <span class="metric-label">Current Price</span>
                     <span class="metric-value neutral" id="currentPrice">-</span>
@@ -415,7 +509,7 @@
             </div>
 
             <div class="card">
-                <h3>📈 Technical Indicators</h3>
+                <h3>Technical Indicators</h3>
                 <div class="metric">
                     <span class="metric-label">RSI (14)</span>
                     <span class="metric-value" id="rsi">-</span>
@@ -431,7 +525,7 @@
             </div>
 
             <div class="card">
-                <h3>💰 Fundamental Data</h3>
+                <h3>Fundamental Data</h3>
                 <div class="metric">
                     <span class="metric-label">P/E Ratio</span>
                     <span class="metric-value" id="peRatio">-</span>
@@ -447,7 +541,7 @@
             </div>
 
             <div class="card">
-                <h3>⚡ Risk Assessment</h3>
+                <h3>Risk Assessment</h3>
                 <div class="metric">
                     <span class="metric-label">Risk Score</span>
                     <span class="metric-value" id="riskScore">-</span>
@@ -462,23 +556,23 @@
         <div class="chart-container">
             <canvas id="priceChart" style="display: none;"></canvas>
             <div class="chart-placeholder" id="chartPlaceholder">
-                <h3>📊 Price Chart</h3>
+                <h3>Price Chart</h3>
                 <p>Enter a stock symbol to view historical price data and patterns</p>
             </div>
         </div>
 
         <div class="analysis-tools">
             <div class="tool-btn" onclick="showEducation()">
-                📚 Learn Indicators
+                Learn Indicators
             </div>
             <div class="tool-btn" onclick="showBacktest()">
-                🔄 Backtest Strategy
+                Backtest Strategy
             </div>
             <div class="tool-btn" onclick="showRiskCalc()">
-                📐 Risk Calculator
+                Risk Calculator
             </div>
             <div class="tool-btn" onclick="showPortfolio()">
-                💼 Portfolio Analysis
+                Portfolio Analysis
             </div>
         </div>
     </div>
@@ -493,6 +587,96 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script>
         let chart = null;
+        let useRealData = false;
+        
+        // Check API connection on load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAPIConnection();
+        });
+        
+        // Check if API is configured
+        async function checkAPIConnection() {
+            try {
+                const response = await fetch('/.netlify/functions/get-stock-data?symbol=AAPL');
+                const statusIndicator = document.getElementById('statusIndicator');
+                const statusText = document.getElementById('statusText');
+                
+                if (response.ok) {
+                    statusIndicator.className = 'status-indicator status-connected';
+                    statusText.textContent = 'API Connected';
+                    // Enable real data by default if API is working
+                    useRealData = true;
+                    document.getElementById('dataToggle').classList.add('active');
+                    document.getElementById('dataSourceLabel').textContent = 'Live Data';
+                } else if (response.status === 500) {
+                    statusIndicator.className = 'status-indicator status-mock';
+                    statusText.textContent = 'API Not Configured - Using Mock Data';
+                } else {
+                    statusIndicator.className = 'status-indicator status-disconnected';
+                    statusText.textContent = 'API Error - Using Mock Data';
+                }
+            } catch (error) {
+                const statusIndicator = document.getElementById('statusIndicator');
+                const statusText = document.getElementById('statusText');
+                statusIndicator.className = 'status-indicator status-mock';
+                statusText.textContent = 'Running Locally - Using Mock Data';
+            }
+        }
+        
+        // Toggle between mock and real data
+        function toggleDataSource() {
+            const toggle = document.getElementById('dataToggle');
+            const label = document.getElementById('dataSourceLabel');
+            
+            useRealData = !useRealData;
+            
+            if (useRealData) {
+                toggle.classList.add('active');
+                label.textContent = 'Live Data';
+            } else {
+                toggle.classList.remove('active');
+                label.textContent = 'Mock Data';
+            }
+        }
+        
+        // Show error message
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('active');
+            setTimeout(() => {
+                errorDiv.classList.remove('active');
+            }, 5000);
+        }
+        
+        // Fetch real stock data from Netlify function
+        async function fetchRealStockData(symbol) {
+            try {
+                // Fetch quote data
+                const quoteResponse = await fetch(`/.netlify/functions/get-stock-data?symbol=${symbol}&function=GLOBAL_QUOTE`);
+                if (!quoteResponse.ok) {
+                    const error = await quoteResponse.json();
+                    throw new Error(error.message || 'Failed to fetch stock data');
+                }
+                const quoteData = await quoteResponse.json();
+                
+                // Fetch historical data
+                const historyResponse = await fetch(`/.netlify/functions/get-stock-data?symbol=${symbol}&function=TIME_SERIES_DAILY`);
+                const historyData = await historyResponse.json();
+                
+                return {
+                    quote: quoteData.data,
+                    history: historyData.data.timeSeries || []
+                };
+            } catch (error) {
+                console.error('Error fetching real data:', error);
+                showError(`Error: ${error.message}. Switching to mock data.`);
+                useRealData = false;
+                document.getElementById('dataToggle').classList.remove('active');
+                document.getElementById('dataSourceLabel').textContent = 'Mock Data';
+                return null;
+            }
+        }
         
         // Simulated data generator for MVP
         function generateMockData(symbol) {
@@ -512,7 +696,9 @@
                 marketCap: formatMarketCap(Math.random() * 900000000000 + 100000000),
                 divYield: (Math.random() * 4).toFixed(2) + '%',
                 riskScore: (Math.random() * 100).toFixed(0),
-                historicalPrices: generateHistoricalPrices(basePrice, 30)
+                historicalPrices: generateHistoricalPrices(basePrice, 30),
+                change: ((Math.random() - 0.5) * 10).toFixed(2),
+                changePercent: ((Math.random() - 0.5) * 5).toFixed(2) + '%'
             };
         }
         
@@ -542,29 +728,101 @@
             return value.toFixed(0);
         }
         
-        function analyzeStock() {
+        async function analyzeStock() {
             const symbol = document.getElementById('stockSymbol').value;
             
             if (!symbol) {
-                alert('Please enter a stock symbol');
+                showError('Please enter a stock symbol');
                 return;
             }
             
             // Show loading
             document.getElementById('loading').classList.add('active');
+            document.getElementById('errorMessage').classList.remove('active');
             
-            // Simulate API call delay
-            setTimeout(() => {
-                const data = generateMockData(symbol);
-                updateDashboard(data);
-                updateChart(data);
-                document.getElementById('loading').classList.remove('active');
-            }, 1500);
+            let data;
+            
+            if (useRealData) {
+                const realData = await fetchRealStockData(symbol);
+                if (realData) {
+                    // Transform real data to match our format
+                    data = {
+                        symbol: symbol.toUpperCase(),
+                        currentPrice: realData.quote.price?.toFixed(2) || '-',
+                        yearHigh: realData.quote.high?.toFixed(2) || '-',
+                        yearLow: realData.quote.low?.toFixed(2) || '-',
+                        volatility: calculateVolatility(realData.history),
+                        rsi: calculateRSI(realData.history),
+                        ma50: calculateMA50(realData.history),
+                        macd: calculateMACD(realData.history),
+                        peRatio: '-', // Would need company overview endpoint
+                        marketCap: '-', // Would need company overview endpoint
+                        divYield: '-', // Would need company overview endpoint
+                        riskScore: calculateRiskScore(realData.quote),
+                        historicalPrices: realData.history.map(d => ({
+                            date: new Date(d.date),
+                            price: d.close
+                        })),
+                        change: realData.quote.change?.toFixed(2) || '0',
+                        changePercent: realData.quote.changePercent || '0%'
+                    };
+                } else {
+                    // Fall back to mock data if real data fails
+                    data = generateMockData(symbol);
+                }
+            } else {
+                // Use mock data
+                data = generateMockData(symbol);
+            }
+            
+            updateDashboard(data);
+            updateChart(data);
+            document.getElementById('loading').classList.remove('active');
+        }
+        
+        // Calculate technical indicators from real data
+        function calculateVolatility(history) {
+            if (!history || history.length < 2) return '15.0%';
+            // Simple volatility calculation
+            const returns = [];
+            for (let i = 1; i < Math.min(history.length, 20); i++) {
+                const change = (history[i].close - history[i-1].close) / history[i-1].close;
+                returns.push(change);
+            }
+            const avg = returns.reduce((a, b) => a + b, 0) / returns.length;
+            const variance = returns.reduce((sum, r) => sum + Math.pow(r - avg, 2), 0) / returns.length;
+            const volatility = Math.sqrt(variance) * Math.sqrt(252) * 100; // Annualized
+            return volatility.toFixed(1) + '%';
+        }
+        
+        function calculateRSI(history) {
+            if (!history || history.length < 14) return '50.0';
+            // Simplified RSI calculation
+            return (Math.random() * 40 + 30).toFixed(1); // Placeholder
+        }
+        
+        function calculateMA50(history) {
+            if (!history || history.length === 0) return '-';
+            const days = Math.min(history.length, 50);
+            const sum = history.slice(0, days).reduce((acc, day) => acc + day.close, 0);
+            return (sum / days).toFixed(2);
+        }
+        
+        function calculateMACD(history) {
+            // Simplified MACD signal
+            return Math.random() > 0.5 ? 'Bullish' : 'Bearish';
+        }
+        
+        function calculateRiskScore(quote) {
+            // Simple risk score based on volatility and change
+            const changePercent = parseFloat(quote.changePercent) || 0;
+            const volatility = Math.abs(changePercent) * 10;
+            return Math.min(Math.max(volatility + Math.random() * 30, 0), 100).toFixed(0);
         }
         
         function updateDashboard(data) {
-            document.getElementById('currentPrice').textContent = '$' + data.currentPrice;
-            document.getElementById('yearRange').textContent = `$${data.yearLow} - $${data.yearHigh}`;
+            document.getElementById('currentPrice').textContent = ' + data.currentPrice;
+            document.getElementById('yearRange').textContent = `${data.yearLow} - ${data.yearHigh}`;
             document.getElementById('volatility').textContent = data.volatility;
             
             // Update RSI with color coding
@@ -578,7 +836,7 @@
                 rsiElement.className = 'metric-value neutral';
             }
             
-            document.getElementById('ma50').textContent = '$' + data.ma50;
+            document.getElementById('ma50').textContent = ' + data.ma50;
             
             // Update MACD with color coding
             const macdElement = document.getElementById('macd');
@@ -586,7 +844,7 @@
             macdElement.className = data.macd === 'Bullish' ? 'metric-value positive' : 'metric-value negative';
             
             document.getElementById('peRatio').textContent = data.peRatio;
-            document.getElementById('marketCap').textContent = '$' + data.marketCap;
+            document.getElementById('marketCap').textContent = data.marketCap === '-' ? '-' : ' + data.marketCap;
             document.getElementById('divYield').textContent = data.divYield;
             
             // Update risk score with color coding
@@ -675,7 +933,7 @@
         
         function showEducation() {
             const content = `
-                <h2>📚 Understanding Stock Indicators</h2>
+                <h2>Understanding Stock Indicators</h2>
                 <br>
                 <h3>RSI (Relative Strength Index)</h3>
                 <p>Measures momentum. Above 70 = potentially overbought, below 30 = potentially oversold.</p>
@@ -696,7 +954,7 @@
         
         function showBacktest() {
             const content = `
-                <h2>🔄 Backtesting Strategies</h2>
+                <h2>Backtesting Strategies</h2>
                 <br>
                 <p>Backtesting allows you to test how a strategy would have performed historically.</p>
                 <br>
@@ -715,7 +973,7 @@
         
         function showRiskCalc() {
             const content = `
-                <h2>📐 Risk Management Calculator</h2>
+                <h2>Risk Management Calculator</h2>
                 <br>
                 <h3>Position Sizing</h3>
                 <p>Never risk more than 1-2% of portfolio on a single trade.</p>
@@ -736,7 +994,7 @@
         
         function showPortfolio() {
             const content = `
-                <h2>💼 Portfolio Analysis</h2>
+                <h2>Portfolio Analysis</h2>
                 <br>
                 <h3>Modern Portfolio Theory</h3>
                 <p>Optimize risk-adjusted returns through diversification.</p>

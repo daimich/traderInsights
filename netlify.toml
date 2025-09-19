@@ -1,0 +1,78 @@
+# Netlify Configuration for StockInsight
+# This file configures build settings, headers, redirects, and functions
+
+[build]
+  # Directory to publish (where your index.html is)
+  publish = "public"
+  
+  # Directory containing serverless functions
+  functions = "netlify/functions"
+
+# Security headers for better protection
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Prevent clickjacking
+    X-Frame-Options = "DENY"
+    
+    # Prevent MIME type sniffing
+    X-Content-Type-Options = "nosniff"
+    
+    # Basic XSS protection
+    X-XSS-Protection = "1; mode=block"
+    
+    # Content Security Policy
+    Content-Security-Policy = """
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data: https:;
+      font-src 'self' data:;
+      connect-src 'self' https://api.alphavantage.co https://*.yahoo.com;
+    """
+    
+    # Referrer policy for privacy
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Cache static assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cache images
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Redirects for API proxy (optional - for direct API calls)
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Environment variables template (don't commit actual keys)
+[template.environment]
+  ALPHA_VANTAGE_KEY = "Your Alpha Vantage API key"
+  NEWS_API_KEY = "Your News API key"
+  MARKET_DATA_KEY = "Your market data API key"
+
+# Development settings
+[dev]
+  port = 8888
+  publish = "public"
+  functions = "netlify/functions"
+
+# Function configuration
+[functions]
+  # Directory where serverless functions live
+  directory = "netlify/functions/"
+  
+  # Node.js version for functions
+  node_bundler = "esbuild"

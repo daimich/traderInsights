@@ -1,7 +1,6 @@
 # StockInsight - Educational Stock Analysis Tool
 
 ![Version](https://img.shields.io/badge/version-1.0.0--MVP-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-development-orange)
 
 ## Overview

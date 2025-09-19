@@ -73,7 +73,7 @@ Then navigate to `http://localhost:8000`
 
 ```
 stockinsight-mvp/
-├── index.html           # Main application file
+├── stockAnalysisMVP.html           # Main application file
 ├── README.md           # Documentation
 ├── LICENSE             # MIT License
 └── docs/
